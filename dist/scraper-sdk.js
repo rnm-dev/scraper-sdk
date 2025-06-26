@@ -5,6 +5,7 @@ const http_client_1 = require("./client/http-client");
 const jobs_1 = require("./services/jobs");
 const tenders_1 = require("./services/tenders");
 const integrations_1 = require("./services/integrations");
+const documents_1 = require("./services/documents");
 class ScraperSdk {
     constructor(config) {
         this.httpClient = new http_client_1.HttpClient(config);
@@ -12,6 +13,13 @@ class ScraperSdk {
         this.jobs = new jobs_1.JobsService(this.httpClient);
         this.tenders = new tenders_1.TendersService(this.httpClient);
         this.integrations = new integrations_1.IntegrationsService(this.httpClient);
+        // Initialize documents service with S3 config if provided
+        if (config.s3) {
+            this.documents = new documents_1.DocumentsService(config.s3);
+        }
+        else {
+            throw new Error('S3 configuration is required for DocumentsService');
+        }
     }
     /**
      * Update the API key for all subsequent requests

@@ -2,17 +2,20 @@ import { HttpClient } from './client/http-client';
 import { JobsService } from './services/jobs';
 import { TendersService } from './services/tenders';
 import { IntegrationsService } from './services/integrations';
+import { DocumentsService } from './services/documents';
 import { ScraperSdkConfig, ScrapingStats, ScrapingResult, Integration } from './types';
 export interface ScraperAPI {
     readonly jobs: JobsService;
     readonly tenders: TendersService;
     readonly integrations: IntegrationsService;
+    readonly documents: DocumentsService;
 }
 export declare class ScraperSdk implements ScraperAPI {
     private httpClient;
     readonly jobs: JobsService;
     readonly tenders: TendersService;
     readonly integrations: IntegrationsService;
+    readonly documents: DocumentsService;
     constructor(config: ScraperSdkConfig);
     /**
      * Update the API key for all subsequent requests

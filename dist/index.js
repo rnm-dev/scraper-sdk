@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = exports.HttpClient = exports.IntegrationsService = exports.TendersService = exports.JobsService = exports.ScraperSdk = void 0;
+exports.default = exports.HttpClient = exports.DocumentsService = exports.IntegrationsService = exports.TendersService = exports.JobsService = exports.ScraperSdk = void 0;
 // Main SDK class
 var scraper_sdk_1 = require("./scraper-sdk");
 Object.defineProperty(exports, "ScraperSdk", { enumerable: true, get: function () { return scraper_sdk_1.ScraperSdk; } });
@@ -25,6 +25,8 @@ var tenders_1 = require("./services/tenders");
 Object.defineProperty(exports, "TendersService", { enumerable: true, get: function () { return tenders_1.TendersService; } });
 var integrations_1 = require("./services/integrations");
 Object.defineProperty(exports, "IntegrationsService", { enumerable: true, get: function () { return integrations_1.IntegrationsService; } });
+var documents_1 = require("./services/documents");
+Object.defineProperty(exports, "DocumentsService", { enumerable: true, get: function () { return documents_1.DocumentsService; } });
 // HTTP Client
 var http_client_1 = require("./client/http-client");
 Object.defineProperty(exports, "HttpClient", { enumerable: true, get: function () { return http_client_1.HttpClient; } });
