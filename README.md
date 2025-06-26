@@ -29,15 +29,36 @@ const result = await sdk.startScraping('ets.kz', async (integration, api) => {
   // 1. Integration data is automatically fetched and passed to your closure
   console.log('Integration ID:', integration.id);
   console.log('Website Name:', integration.website_name);
-  console.log('Access Token:', integration.access_token);
   
-  // 2. Your scraping logic goes here
-  const scrapedTenders = await scrapeWebsite(integration);
+  // 2. Use integration access_token for authenticated API calls
+  const headers = {
+    'Authorization': `Bearer ${integration.access_token}`,
+    'X-API-Key': integration.authorization_token
+  };
   
-  // 3. Submit the data using the clean API interface
+  // 3. Your scraping logic with proper authentication
+  const scrapedTenders = await scrapeWebsiteWithAuth('https://api.ets.kz/tenders', headers);
+  
+  // 4. Submit the data using the clean API interface
   await api.tenders.submitTenders(scrapedTenders, 'ets.kz');
   
-  // 4. Return stats - SDK handles everything else!
+  // 5. Upload documents for each tender (if available)
+  for (const tender of scrapedTenders) {
+    if (tender.documentUrl) {
+      try {
+        const documentResult = await api.documents.uploadDocument({
+          downloadUrl: tender.documentUrl,
+          tenderNumber: tender.number,
+          websiteOrigin: 'ets.kz'
+        });
+        console.log(`📄 Document uploaded for tender ${tender.number}: ${documentResult.url}`);
+      } catch (error) {
+        console.warn(`⚠️ Failed to upload document for tender ${tender.number}:`, error);
+      }
+    }
+  }
+  
+  // 6. Return stats - SDK handles everything else!
   return {
     new_records: scrapedTenders.length,
     updated_records: 0,
