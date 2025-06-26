@@ -1,79 +1,61 @@
 import { HttpClient } from '../client/http-client';
-import { TenderItem, SubmitTendersRequest, ApiResponse } from '../types';
+import { TenderItem, SubmitTendersRequest, BatchSubmitResponse } from '../types';
 
 export class TendersService {
   constructor(private httpClient: HttpClient) {}
 
   /**
-   * Submit tenders in batch to the backend
+   * Create tenders in the system
+   * @param tenders - Array of tender items to create/update
+   * @param websiteOrigin - The website origin (e.g., 'ets.kz')
+   * @param chunkSize - Optional chunk size for large datasets (default: 100)
+   * @returns Statistics about created/updated tenders
    */
-  async submitTenders(
-    tenders: TenderItem[],
-    websiteOrigin: string
-  ): Promise<ApiResponse> {
-    const request: SubmitTendersRequest = {
-      data: tenders,
-      websiteOrigin
-    };
-
-    return this.httpClient.post<ApiResponse>('/api/scrapers/tenders/by_batch', request);
-  }
-
-  /**
-   * Submit a single tender (convenience method)
-   */
-  async submitTender(
-    tender: TenderItem,
-    websiteOrigin: string
-  ): Promise<ApiResponse> {
-    return this.submitTenders([tender], websiteOrigin);
-  }
-
-  /**
-   * Submit archived tenders
-   */
-  async submitArchivedTenders(
-    tenders: TenderItem[],
-    websiteOrigin: string
-  ): Promise<ApiResponse> {
-    const request: SubmitTendersRequest = {
-      data: tenders,
-      websiteOrigin
-    };
-
-    return this.httpClient.post<ApiResponse>('/api/scrapers/tenders/archived', request);
-  }
-
-  /**
-   * Batch tender submission with chunking for large datasets
-   */
-  async submitTendersInChunks(
+  async create(
     tenders: TenderItem[],
     websiteOrigin: string,
     chunkSize: number = 100
-  ): Promise<ApiResponse[]> {
+  ): Promise<{ new: number; updated: number }> {
+    // Handle small datasets directly
+    if (tenders.length <= chunkSize) {
+      const request: SubmitTendersRequest = {
+        data: tenders,
+        websiteOrigin
+      };
+      
+      const result = await this.httpClient.post<BatchSubmitResponse>('/api/scraper_api/tenders/batch', request);
+      return result.stats;
+    }
+
+    // Handle large datasets with chunking
     const chunks = this.chunkArray(tenders, chunkSize);
-    const results: ApiResponse[] = [];
+    const totalStats = { new: 0, updated: 0 };
 
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
-      console.log(`📦 Submitting chunk ${i + 1}/${chunks.length} (${chunk.length} tenders)`);
+      console.log(`📦 Processing chunk ${i + 1}/${chunks.length} (${chunk.length} tenders)`);
       
       try {
-        const result = await this.submitTenders(chunk, websiteOrigin);
-        results.push(result);
+        const request: SubmitTendersRequest = {
+          data: chunk,
+          websiteOrigin
+        };
         
-        // Small delay between chunks to avoid overwhelming the server
-        if (i < chunks.length - 1) {
-          await this.delay(1000);
-        }
+        const result = await this.httpClient.post<BatchSubmitResponse>('/api/scraper_api/tenders/batch', request);
+        
+        // Accumulate statistics
+        totalStats.new += result.stats.new;
+        totalStats.updated += result.stats.updated;
+        
+        console.log(`✅ Chunk ${i + 1} completed: ${result.stats.new} new, ${result.stats.updated} updated`);
       } catch (error) {
-        console.error(`❌ Failed to submit chunk ${i + 1}:`, error);
+        console.error(`❌ Failed to process chunk ${i + 1}:`, error);
         throw error;
       }
     }
 
-    return results;
+    console.log(`🎯 Total results: ${totalStats.new} new, ${totalStats.updated} updated tenders`);
+    return totalStats;
   }
 
   /**
@@ -85,12 +67,5 @@ export class TendersService {
       chunks.push(array.slice(i, i + chunkSize));
     }
     return chunks;
-  }
-
-  /**
-   * Helper method for delays
-   */
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
   }
 } 

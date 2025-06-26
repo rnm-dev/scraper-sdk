@@ -102,10 +102,18 @@ export interface TenderItem {
     best_sum?: string;
     document_urls?: string[];
     lots?: any[];
+    archived_at?: Date | string | null;
 }
 export interface SubmitTendersRequest {
     data: TenderItem[];
     websiteOrigin: string;
+}
+export interface BatchSubmitResponse {
+    message: string;
+    stats: {
+        new: number;
+        updated: number;
+    };
 }
 export interface DocumentUploadOptions {
     downloadUrl: string;

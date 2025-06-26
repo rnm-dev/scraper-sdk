@@ -1,30 +1,21 @@
 import { HttpClient } from '../client/http-client';
-import { TenderItem, ApiResponse } from '../types';
+import { TenderItem } from '../types';
 export declare class TendersService {
     private httpClient;
     constructor(httpClient: HttpClient);
     /**
-     * Submit tenders in batch to the backend
+     * Create tenders in the system
+     * @param tenders - Array of tender items to create/update
+     * @param websiteOrigin - The website origin (e.g., 'ets.kz')
+     * @param chunkSize - Optional chunk size for large datasets (default: 100)
+     * @returns Statistics about created/updated tenders
      */
-    submitTenders(tenders: TenderItem[], websiteOrigin: string): Promise<ApiResponse>;
-    /**
-     * Submit a single tender (convenience method)
-     */
-    submitTender(tender: TenderItem, websiteOrigin: string): Promise<ApiResponse>;
-    /**
-     * Submit archived tenders
-     */
-    submitArchivedTenders(tenders: TenderItem[], websiteOrigin: string): Promise<ApiResponse>;
-    /**
-     * Batch tender submission with chunking for large datasets
-     */
-    submitTendersInChunks(tenders: TenderItem[], websiteOrigin: string, chunkSize?: number): Promise<ApiResponse[]>;
+    create(tenders: TenderItem[], websiteOrigin: string, chunkSize?: number): Promise<{
+        new: number;
+        updated: number;
+    }>;
     /**
      * Helper method to chunk an array
      */
     private chunkArray;
-    /**
-     * Helper method for delays
-     */
-    private delay;
 }
