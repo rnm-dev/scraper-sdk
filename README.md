@@ -14,7 +14,14 @@ import { ScraperSdk } from '@tenderscraper/sdk';
 const sdk = new ScraperSdk({
   baseUrl: 'https://your-api.com',
   apiKey: 'your-api-key',
-  debug: true
+  debug: true,
+  s3: {
+    accessKeyId: 'your-access-key',
+    secretAccessKey: 'your-secret-key',
+    region: 'us-east-1',
+    bucket: 'your-bucket',
+    endpoint: 'https://minio.example.com' // Optional for custom S3 endpoints
+  }
 });
 
 // Run your scraper with automatic job management
@@ -98,6 +105,15 @@ interface ScraperSdkConfig {
   timeout?: number;       // Request timeout (default: 30000ms)
   retries?: number;       // Number of retries (default: 3)
   debug?: boolean;        // Enable debug logging (default: false)
+  s3?: S3Config;          // S3 configuration for document uploads
+}
+
+interface S3Config {
+  accessKeyId: string;    // AWS access key ID
+  secretAccessKey: string; // AWS secret access key
+  region: string;         // AWS region (e.g., 'us-east-1')
+  bucket: string;         // S3 bucket name
+  endpoint?: string;      // Custom S3 endpoint (for MinIO, DigitalOcean, etc.)
 }
 ```
 
@@ -110,6 +126,7 @@ interface ScraperAPI {
   readonly jobs: JobsService;
   readonly tenders: TendersService;
   readonly integrations: IntegrationsService;
+  readonly documents: DocumentsService;
 }
 ```
 
@@ -145,7 +162,14 @@ const result = await sdk.startScraping('website.com', async (integration, api) =
   // Use the clean API interface for all operations
   await api.tenders.submitTenders(data, 'website.com');
   
-  // You can also access other services if needed
+  // You can also upload documents to S3 and access other services
+  const documentResult = await api.documents.uploadDocument({
+    downloadUrl: 'https://example.com/tender-docs.zip',
+    tenderNumber: data[0].number,
+    websiteOrigin: 'website.com'
+  });
+  console.log('Document uploaded:', documentResult.url);
+  
   const jobs = await api.jobs.getJobs();
   const integrations = await api.integrations.getIntegrations();
   
@@ -194,6 +218,21 @@ await sdk.tenders.submitTendersInChunks(
   'ets.kz',
   100 // chunk size
 );
+```
+
+### Documents API
+
+```typescript
+// Upload documents directly to S3
+const result = await sdk.documents.uploadDocument({
+  downloadUrl: 'https://example.com/tender-documents.zip',
+  tenderNumber: 'T-12345',
+  websiteOrigin: 'ets.kz'
+});
+
+console.log('Document URL:', result.url);
+// File will be stored as: websiteOrigin/tenderNumber/timestamp-hash.extension
+// Example: ets.kz/T-12345/1640995200000-a1b2c3d4.zip
 ```
 
 ### Jobs API (Manual Control)
@@ -261,6 +300,9 @@ const sdk = new ScraperSdk({
 ```bash
 # Install dependencies
 npm install
+
+# Install AWS SDK (required for document uploads)
+npm install @aws-sdk/client-s3
 
 # Build the SDK
 npm run build

@@ -2,12 +2,14 @@ import { HttpClient } from './client/http-client';
 import { JobsService } from './services/jobs';
 import { TendersService } from './services/tenders';
 import { IntegrationsService } from './services/integrations';
+import { DocumentsService } from './services/documents';
 import { ScraperSdkConfig, ScrapingStats, ScrapingResult, Integration } from './types';
 
 export interface ScraperAPI {
   readonly jobs: JobsService;
   readonly tenders: TendersService;
   readonly integrations: IntegrationsService;
+  readonly documents: DocumentsService;
 }
 
 export class ScraperSdk implements ScraperAPI {
@@ -16,6 +18,7 @@ export class ScraperSdk implements ScraperAPI {
   public readonly jobs: JobsService;
   public readonly tenders: TendersService;
   public readonly integrations: IntegrationsService;
+  public readonly documents: DocumentsService;
 
   constructor(config: ScraperSdkConfig) {
     this.httpClient = new HttpClient(config);
@@ -24,6 +27,13 @@ export class ScraperSdk implements ScraperAPI {
     this.jobs = new JobsService(this.httpClient);
     this.tenders = new TendersService(this.httpClient);
     this.integrations = new IntegrationsService(this.httpClient);
+    
+    // Initialize documents service with S3 config if provided
+    if (config.s3) {
+      this.documents = new DocumentsService(config.s3);
+    } else {
+      throw new Error('S3 configuration is required for DocumentsService');
+    }
   }
 
   /**

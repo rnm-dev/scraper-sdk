@@ -1,10 +1,11 @@
 // Main SDK class
-export { ScraperSdk } from './scraper-sdk';
+export { ScraperSdk, ScraperAPI } from './scraper-sdk';
 
 // Services
 export { JobsService } from './services/jobs';
 export { TendersService } from './services/tenders';
 export { IntegrationsService } from './services/integrations';
+export { DocumentsService } from './services/documents';
 
 // HTTP Client
 export { HttpClient } from './client/http-client';

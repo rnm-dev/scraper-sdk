@@ -13,6 +13,15 @@ export interface ScraperSdkConfig {
   timeout?: number;
   retries?: number;
   debug?: boolean;
+  s3?: S3Config;
+}
+
+export interface S3Config {
+  accessKeyId: string;
+  secretAccessKey: string;
+  region: string;
+  bucket: string;
+  endpoint?: string;
 }
 
 // Integration types
@@ -117,6 +126,17 @@ export interface TenderItem {
 export interface SubmitTendersRequest {
   data: TenderItem[];
   websiteOrigin: string;
+}
+
+// Document upload types
+export interface DocumentUploadOptions {
+  downloadUrl: string;
+  tenderNumber: string;
+  websiteOrigin: string;
+}
+
+export interface DocumentUploadResult {
+  url: string;
 }
 
 // Error types
