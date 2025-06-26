@@ -1,0 +1,32 @@
+{
+  "name": "@tenderscraper/sdk",
+  "version": "1.0.0",
+  "description": "SDK for TenderScraper backend API interactions",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src/**/*.ts",
+    "test": "jest"
+  },
+  "keywords": ["scraper", "tender", "api", "sdk"],
+  "author": "TenderScraper Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "axios-retry": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0"
+  },
+  "files": [
+    "dist/**/*"
+  ]
+} 
