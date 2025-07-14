@@ -40,7 +40,7 @@ const result = await sdk.startScraping('ets.kz', async (integration, api) => {
   const scrapedTenders = await scrapeWebsiteWithAuth('https://api.ets.kz/tenders', headers);
   
   // 4. Submit the data using the clean API interface
-  await api.tenders.submitTenders(scrapedTenders, 'ets.kz');
+  await api.tenders.create(scrapedTenders, 'ets.kz');
   
   // 5. Upload documents for each tender (if available)
   for (const tender of scrapedTenders) {
@@ -97,7 +97,7 @@ const result = await sdk.startScraping('zakup.sk.kz', async (integration, api) =
   const data = await fetch('https://api.example.com/data', { headers });
   
   // Access all services through the clean API interface
-  await api.tenders.submitTenders(data, 'zakup.sk.kz');
+  await api.tenders.create(data, 'zakup.sk.kz');
   
   return { new_records: data.length };
 });
@@ -181,7 +181,7 @@ const result = await sdk.startScraping('website.com', async (integration, api) =
   const data = await performScraping(integration);
   
   // Use the clean API interface for all operations
-  await api.tenders.submitTenders(data, 'website.com');
+  await api.tenders.create(data, 'website.com');
   
   // You can also upload documents to S3 and access other services
   const documentResult = await api.documents.uploadDocument({
@@ -224,21 +224,14 @@ const integration = await sdk.integrations.getIntegrationByOrigin('ets.kz');
 
 ```typescript
 // Submit single tender
-await sdk.tenders.submitTender({
+await sdk.tenders.create([{
   number: 'T-12345',
   name: 'Example Tender',
   sum: '1000000'
-}, 'ets.kz');
+}], 'ets.kz');
 
 // Submit multiple tenders
-await sdk.tenders.submitTenders(tenderArray, 'ets.kz');
-
-// Submit large datasets in chunks (automatic chunking)
-await sdk.tenders.submitTendersInChunks(
-  largeTenderArray,
-  'ets.kz',
-  100 // chunk size
-);
+await sdk.tenders.create(tenderArray, 'ets.kz');
 ```
 
 ### Documents API
@@ -268,21 +261,6 @@ await sdk.jobs.completeJob(job.id, { new_records: 10 });
 const jobs = await sdk.jobs.getJobs({
   website_origin: 'ets.kz',
   status: 'completed'
-});
-```
-
-### Batch Processing Large Datasets
-
-```typescript
-const result = await sdk.startScraping('ets.kz', async (integration, api) => {
-  const allTenders = await scrapeAllPages(integration);
-  
-  // Automatically chunks large datasets using the clean API
-  await api.tenders.submitTendersInChunks(allTenders, 'ets.kz', 100);
-  
-  return {
-    new_records: allTenders.length
-  };
 });
 ```
 
