@@ -2,10 +2,12 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import axios from 'axios';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import * as fs from 'fs/promises';
 import { S3Config } from '../types';
 
 export interface DocumentUploadOptions {
-  downloadUrl: string;
+  downloadUrl?: string;
+  filePath?: string;
   tenderNumber: string;
   websiteOrigin: string;
 }
@@ -33,24 +35,46 @@ export class DocumentsService {
   }
 
   /**
-   * Upload documents from a download URL to S3 storage
+   * Upload documents from a download URL or local file path to S3 storage
    * This method handles:
-   * - Downloading the file from the URL
+   * - Downloading the file from the URL or reading from local file system
    * - Uploading directly to S3
    * - Returning the public URLs
    */
   async uploadDocument({
     downloadUrl,
+    filePath,
     tenderNumber,
     websiteOrigin
   }: DocumentUploadOptions): Promise<DocumentUploadResult> {
     try {
-      // Download the file
-      const response = await axios.get(downloadUrl, { responseType: 'arraybuffer' });
-      const fileBuffer = Buffer.from(response.data);
+      // Validate that either downloadUrl or filePath is provided
+      if (!downloadUrl && !filePath) {
+        throw new Error('Either downloadUrl or filePath must be provided');
+      }
+      
+      if (downloadUrl && filePath) {
+        throw new Error('Only one of downloadUrl or filePath should be provided');
+      }
+      
+      let fileBuffer: Buffer;
+      let sourceForExtension: string;
+      
+      if (downloadUrl) {
+        // Download the file from URL
+        const response = await axios.get(downloadUrl, { responseType: 'arraybuffer' });
+        fileBuffer = Buffer.from(response.data);
+        sourceForExtension = downloadUrl;
+      } else if (filePath) {
+        // Read the file from local file system
+        fileBuffer = await fs.readFile(filePath);
+        sourceForExtension = filePath;
+      } else {
+        throw new Error('No file source provided');
+      }
       
       // Generate a unique filename
-      const fileExtension = this.getFileExtension(downloadUrl);
+      const fileExtension = this.getFileExtension(sourceForExtension);
       const timestamp = Date.now();
       const hash = crypto.createHash('md5').update(fileBuffer).digest('hex').substring(0, 8);
       const fileName = `${websiteOrigin}/${tenderNumber}/${timestamp}-${hash}${fileExtension}`;
@@ -77,9 +101,15 @@ export class DocumentsService {
     }
   }
 
-  private getFileExtension(url: string): string {
-    const pathname = new URL(url).pathname;
-    return path.extname(pathname) || '.pdf';
+  private getFileExtension(source: string): string {
+    try {
+      // Try to parse as URL first
+      const pathname = new URL(source).pathname;
+      return path.extname(pathname) || '.pdf';
+    } catch {
+      // If not a URL, treat as file path
+      return path.extname(source) || '.pdf';
+    }
   }
 
   private getContentType(extension: string): string {

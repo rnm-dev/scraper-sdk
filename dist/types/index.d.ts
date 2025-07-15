@@ -116,7 +116,8 @@ export interface BatchSubmitResponse {
     };
 }
 export interface DocumentUploadOptions {
-    downloadUrl: string;
+    downloadUrl?: string;
+    filePath?: string;
     tenderNumber: string;
     websiteOrigin: string;
 }

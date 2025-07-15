@@ -56,6 +56,20 @@ const result = await sdk.startScraping('ets.kz', async (integration, api) => {
         console.warn(`⚠️ Failed to upload document for tender ${tender.number}:`, error);
       }
     }
+    
+    // Alternative: upload from local file
+    if (tender.localDocumentPath) {
+      try {
+        const documentResult = await api.documents.uploadDocument({
+          filePath: tender.localDocumentPath,
+          tenderNumber: tender.number,
+          websiteOrigin: 'ets.kz'
+        });
+        console.log(`📄 Local document uploaded for tender ${tender.number}: ${documentResult.url}`);
+      } catch (error) {
+        console.warn(`⚠️ Failed to upload local document for tender ${tender.number}:`, error);
+      }
+    }
   }
   
   // 6. Return stats - SDK handles everything else!
@@ -135,6 +149,13 @@ interface S3Config {
   region: string;         // AWS region (e.g., 'us-east-1')
   bucket: string;         // S3 bucket name
   endpoint?: string;      // Custom S3 endpoint (for MinIO, DigitalOcean, etc.)
+}
+
+interface DocumentUploadOptions {
+  downloadUrl?: string;   // URL to download the document from
+  filePath?: string;      // Local file path to upload from
+  tenderNumber: string;   // Tender number for organization
+  websiteOrigin: string;  // Website origin for organization
 }
 ```
 
@@ -237,9 +258,16 @@ await sdk.tenders.create(tenderArray, 'ets.kz');
 ### Documents API
 
 ```typescript
-// Upload documents directly to S3
+// Upload documents from URL
 const result = await sdk.documents.uploadDocument({
   downloadUrl: 'https://example.com/tender-documents.zip',
+  tenderNumber: 'T-12345',
+  websiteOrigin: 'ets.kz'
+});
+
+// Upload documents from local file path
+const localResult = await sdk.documents.uploadDocument({
+  filePath: '/path/to/local/tender-documents.pdf',
   tenderNumber: 'T-12345',
   websiteOrigin: 'ets.kz'
 });

@@ -139,7 +139,8 @@ export interface BatchSubmitResponse {
 
 // Document upload types
 export interface DocumentUploadOptions {
-  downloadUrl: string;
+  downloadUrl?: string;
+  filePath?: string;
   tenderNumber: string;
   websiteOrigin: string;
 }
