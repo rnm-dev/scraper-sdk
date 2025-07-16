@@ -9,13 +9,13 @@ class IntegrationsService {
      * Get all integrations
      */
     async getIntegrations() {
-        return this.httpClient.get('/scraper_api/integrations');
+        return this.httpClient.get('api/scraper_api/integrations');
     }
     /**
      * Get integration by website origin
      */
     async getIntegrationByOrigin(websiteOrigin) {
-        const integration = await this.httpClient.get(`/scraper_api/integrations/${websiteOrigin}`);
+        const integration = await this.httpClient.get(`api/scraper_api/integrations/${websiteOrigin}`);
         if (!integration) {
             throw new Error(`Integration not found for website origin: ${websiteOrigin}`);
         }
