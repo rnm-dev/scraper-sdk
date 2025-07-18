@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import axios from 'axios';
 import * as path from 'path';
 import * as crypto from 'crypto';
@@ -78,6 +78,24 @@ export class DocumentsService {
       const timestamp = Date.now();
       const hash = crypto.createHash('md5').update(fileBuffer).digest('hex').substring(0, 8);
       const fileName = `${websiteOrigin}/${tenderNumber}/${timestamp}-${hash}${fileExtension}`;
+
+      try {
+        await this.s3Client.send(new HeadObjectCommand({
+          Bucket: this.bucket,
+          Key: fileName
+        }));
+      
+        console.log(`📦 File already exists: ${fileName}`);
+        return {
+          url: this.generatePublicUrl(fileName)
+        };
+      
+      } catch (err: any) {
+        if (err.name !== 'NotFound') {
+          console.error('🔍 Error checking file existence:', err);
+          throw err;
+        }
+      }
       
       // Upload to S3
       const uploadCommand = new PutObjectCommand({

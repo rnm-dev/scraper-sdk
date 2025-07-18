@@ -92,6 +92,22 @@ class DocumentsService {
             const timestamp = Date.now();
             const hash = crypto.createHash('md5').update(fileBuffer).digest('hex').substring(0, 8);
             const fileName = `${websiteOrigin}/${tenderNumber}/${timestamp}-${hash}${fileExtension}`;
+            try {
+                await this.s3Client.send(new client_s3_1.HeadObjectCommand({
+                    Bucket: this.bucket,
+                    Key: fileName
+                }));
+                console.log(`📦 File already exists: ${fileName}`);
+                return {
+                    url: this.generatePublicUrl(fileName)
+                };
+            }
+            catch (err) {
+                if (err.name !== 'NotFound') {
+                    console.error('🔍 Error checking file existence:', err);
+                    throw err;
+                }
+            }
             // Upload to S3
             const uploadCommand = new client_s3_1.PutObjectCommand({
                 Bucket: this.bucket,
