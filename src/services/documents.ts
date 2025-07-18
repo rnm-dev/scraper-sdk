@@ -85,6 +85,7 @@ export class DocumentsService {
         Key: fileName,
         Body: fileBuffer,
         ContentType: this.getContentType(fileExtension),
+        ACL: 'public-read'
       });
       
       await this.s3Client.send(uploadCommand);
